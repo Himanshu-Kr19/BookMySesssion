@@ -1,7 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const pool = require('./config/db'); // Import database configuration
-
+const dotenv = require('dotenv');
+const authRoutes = require('./routes/signup');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -17,10 +18,12 @@ pool.query('SELECT NOW()', (err, res) => {
     }
 });
 
-// Sample API route
+// API routes
 app.get('/', (req, res) => {
     res.send('Server is running, and the database connection is established!');
 });
+
+app.use('/api/auth', authRoutes);
 
 // Start the server
 app.listen(PORT, () => {
