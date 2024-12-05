@@ -4,6 +4,7 @@ const pool = require('../config/db');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
 
 dotenv.config();
 
@@ -168,6 +169,53 @@ router.post('/verify-otp', async (req, res) => {
     } catch (error) {
         console.error('Error during OTP verification:', error);
         res.status(500).json({ error: 'OTP verification failed. Please try again later.' });
+    }
+});
+
+
+// Login route
+router.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        // Check if user exists
+        const checkUserQuery = `SELECT id, email, password, verified FROM users WHERE email = $1`;
+        const userResult = await pool.query(checkUserQuery, [email]);
+
+        if (userResult.rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid email or password.' });
+        }
+
+        const user = userResult.rows[0];
+
+        // Check if the user is verified
+        if (!user.verified) {
+            return res.status(400).json({ error: 'Account not verified. Please verify your account first.' });
+        }
+
+        // Compare the entered password with the hashed password in the database
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Invalid email or password.' });
+        }
+
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user.id, email: user.email }, // Payload
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }                      // Token expiration time (1 hour)
+        );
+
+        // Send response with JWT token
+        res.status(200).json({
+            message: 'Login successful.',
+            jwtToken: token, // Send token 
+        });
+
+    } catch (error) {
+        console.error('Error during login:', error);
+        res.status(500).json({ error: 'Login failed. Please try again later.' });
     }
 });
 

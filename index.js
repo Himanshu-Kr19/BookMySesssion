@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./config/db'); // Import database configuration
 const dotenv = require('dotenv');
-const authRoutes = require('./routes/signup');
+const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
