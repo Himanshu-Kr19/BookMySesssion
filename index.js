@@ -39,6 +39,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/speaker', require('./routes/speaker-profile'));
+app.use('/api/session', require('./routes/session-booking'));
 
 // Start the server
 app.listen(PORT, () => {
