@@ -179,7 +179,7 @@ router.post('/login', async (req, res) => {
 
     try {
         // Check if user exists
-        const checkUserQuery = `SELECT id, email, password, verified FROM users WHERE email = $1`;
+        const checkUserQuery = `SELECT id, email, password, verified, role FROM users WHERE email = $1`;
         const userResult = await pool.query(checkUserQuery, [email]);
 
         if (userResult.rows.length === 0) {
@@ -202,11 +202,10 @@ router.post('/login', async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign(
-            { userId: user.id, email: user.email }, // Payload
+            { userId: user.id, email: user.email, role: user.role }, // Payload
             process.env.JWT_SECRET,
             { expiresIn: '1h' }                      // Token expiration time (1 hour)
         );
-
         // Send response with JWT token
         res.status(200).json({
             message: 'Login successful.',
