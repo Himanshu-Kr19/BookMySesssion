@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authenticateToken = require('../middleware/authenticateToken');
+const nodemailer = require('nodemailer');
 
 // Get all speakers
 router.get('/get-speakers', authenticateToken, async (req, res) => {
@@ -37,7 +38,6 @@ router.get('/get-speakers', authenticateToken, async (req, res) => {
 
         res.json({ speakers: result.rows });
     } catch (err) {
-        console.error(err);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -87,17 +87,24 @@ router.get('/:speakerId/slots', authenticateToken, async (req, res) => {
         res.status(200).json(availableSlots);
 
     } catch (error) {
-        console.error('Error fetching time slots:', error);
         res.status(500).json({ error: 'An error occurred while fetching slots.' });
     }
 });
 
-//Booking Slot for a speaker(one user can't book same slot but multiple users can book same slot)
+// Create a transporter object using the default SMTP transport (Gmail)
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+    },
+});
+
+// Booking Slot Route (with email notifications)
 router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
     try {
 
         if (!req.user || (!req.user.id && !req.user.userId)) {
-            console.error('Invalid user object:', req.user);
             return res.status(401).json({ message: 'Invalid user authentication.' });
         }
 
@@ -138,8 +145,110 @@ router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
             RETURNING *;
         `;
 
-        console.log('Executing query with params:', { userId, slot_id, speakerId });
         const bookingResult = await pool.query(insertBookingQuery, [userId, slot_id, speakerId]);
+
+        // Fetch user and speaker information for email notifications
+        const user = 'SELECT email, first_name FROM users WHERE id = $1';
+        const speaker = 'SELECT email, first_name FROM users WHERE id = (SELECT speaker_id FROM speaker_profiles WHERE id = $1)';
+
+        const userResult = await pool.query(user, [userId]);
+        const speaker_ans = await pool.query(speaker, [speakerId]);
+
+        if (userResult.rows.length === 0 || speaker_ans.rows.length === 0) {
+            return res.status(400).json({ message: 'User or speaker email not found.' });
+        }
+
+        const userEmail = userResult.rows[0].email;
+        const speakerEmail = speaker_ans.rows[0].email;
+        const userFirstName = userResult.rows[0].first_name;
+        const speakerFirstName = speaker_ans.rows[0].first_name;
+
+        // Email content for the user
+        const userMailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: 'Slot Booked Successfully - Confirmation',
+            html: `
+        <html>
+            <body style="font-family: Arial, sans-serif; background-color: #f7f7f7; color: #333;">
+                <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px;">
+                    <h2 style="text-align: center; color: #2a9d8f;">Slot Booked Successfully!</h2>
+                    <p>Hello <strong>${userFirstName}</strong>,</p>
+                    <p>Congratulations! You have successfully booked a session with <strong>${speakerFirstName}</strong>.</p>
+
+                    <p style="font-weight: bold; color: #333;">Here are your booking details:</p>
+
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Speaker:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${speakerFirstName}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Slot Start:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${slotResult.rows[0].slot_start}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Slot End:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${slotResult.rows[0].slot_end}</td>
+                        </tr>
+                    </table>
+
+                    <p style="margin-top: 20px;">We are excited to have you on board for this session. Please ensure to be on time and ready for an engaging experience.</p>
+                    <p style="color: #e76f51; font-weight: bold;">Looking forward to a productive session with ${speakerFirstName}!</p>
+
+                    <footer style="text-align: center; margin-top: 40px; font-size: 12px; color: #777;">
+                        <p>Thank you for using our platform. We hope you enjoy the session!</p>
+                    </footer>
+                </div>
+            </body>
+        </html>
+    `,
+        };
+
+
+        // Email content for the speaker
+        const speakerMailOptions = {
+            from: process.env.EMAIL_USER,
+            to: speakerEmail,
+            subject: 'New Slot Booking - Speaker Notification',
+            html: `
+        <html>
+            <body style="font-family: Arial, sans-serif; background-color: #f7f7f7; color: #333;">
+                <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px;">
+                    <h2 style="text-align: center; color: #2a9d8f;">New Slot Booking!</h2>
+                    <p>Hello <strong>${speakerFirstName}</strong>,</p>
+                    <p>A new user has successfully booked a session with you! Here are the details:</p>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">User:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${userFirstName}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Slot Start:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${slotResult.rows[0].slot_start}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd; font-weight: bold;">Slot End:</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${slotResult.rows[0].slot_end}</td>
+                        </tr>
+                    </table>
+
+                    <p style="margin-top: 20px;">Please prepare accordingly for the upcoming session. Make sure to reach out to the user if you need any further details.</p>
+                    <p style="color: #e76f51; font-weight: bold;">Looking forward to a productive session!</p>
+
+                    <footer style="text-align: center; margin-top: 40px; font-size: 12px; color: #777;">
+                        <p>Thank you for being a part of our platform.</p>
+                    </footer>
+                </div>
+            </body>
+        </html>
+    `,
+        };
+
+        // Send emails
+        await transporter.sendMail(userMailOptions);
+        await transporter.sendMail(speakerMailOptions);
 
         res.status(200).json({
             message: 'Slot booked successfully!',
@@ -147,7 +256,6 @@ router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Booking error:', error);
         if (error.code === '23505') {
             return res.status(400).json({
                 message: 'You have already booked this slot. Multiple bookings are not allowed.'
@@ -164,4 +272,5 @@ router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
         });
     }
 });
+
 module.exports = router;
