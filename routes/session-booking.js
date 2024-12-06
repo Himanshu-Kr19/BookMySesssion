@@ -42,7 +42,7 @@ router.get('/get-speakers', authenticateToken, async (req, res) => {
 });
 
 // Endpoint to get available time slots for a speaker
-router.get('/:speakerId/slots', async (req, res) => {
+router.get('/:speakerId/slots', authenticateToken, async (req, res) => {
     const speakerId = req.params.speakerId;
 
     try {
@@ -84,7 +84,10 @@ router.get('/:speakerId/slots', async (req, res) => {
         console.error('Error fetching time slots:', error);
         res.status(500).json({ error: 'An error occurred while fetching available slots.' });
     }
-}); router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
+});
+
+//Booking Slot (only one user can book one slot each but multiple users can book the same slot)
+router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
     const userId = req.user.id; // Assuming JWT contains the user ID
     const speakerId = req.params.speakerId;
     const { slot_id } = req.body; // ID of the slot to book (passed in the request body)
