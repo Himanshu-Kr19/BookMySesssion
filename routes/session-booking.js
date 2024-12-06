@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authenticateToken = require('../middleware/authenticateToken');
-
 // Get all speakers
 router.get('/get-speakers', authenticateToken, async (req, res) => {
     try {
@@ -10,7 +9,7 @@ router.get('/get-speakers', authenticateToken, async (req, res) => {
 
         // Build query based on optional filters
         let query = `
-            SELECT u.id AS speaker_id, u.first_name, u.last_name, u.email, 
+            SELECT u.id AS user_id, sp.id AS speaker_id, u.first_name, u.last_name, u.email, 
                 sp.expertise, sp.price_per_session
             FROM speaker_profiles sp
             JOIN users u ON sp.speaker_id = u.id
@@ -40,7 +39,9 @@ router.get('/get-speakers', authenticateToken, async (req, res) => {
         console.error(err);
         res.status(500).json({ message: "Internal server error" });
     }
-});// Endpoint to get available time slots for a speaker
+});
+
+// Endpoint to get available time slots for a speaker
 router.get('/:speakerId/slots', async (req, res) => {
     const speakerId = req.params.speakerId;
 
@@ -83,6 +84,73 @@ router.get('/:speakerId/slots', async (req, res) => {
         console.error('Error fetching time slots:', error);
         res.status(500).json({ error: 'An error occurred while fetching available slots.' });
     }
+}); router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
+    const userId = req.user.id; // Assuming JWT contains the user ID
+    const speakerId = req.params.speakerId;
+    const { slot_id } = req.body; // ID of the slot to book (passed in the request body)
+
+    try {
+        // Step 1: Check if the user has already booked this slot
+        const checkExistingBookingQuery = `
+            SELECT * 
+            FROM bookings 
+            WHERE user_id = $1 AND slot_id = $2
+        `;
+        const existingBooking = await pool.query(checkExistingBookingQuery, [userId, slot_id]);
+
+        if (existingBooking.rows.length > 0) {
+            return res.status(400).json({ message: 'You have already booked this slot.' });
+        }
+
+        // Step 2: Check if the slot is available
+        const checkSlotQuery = `
+            SELECT * 
+            FROM time_slots 
+            WHERE id = $1 AND speaker_profile_id = $2 AND is_booked = FALSE
+        `;
+        console.log("Check Slot Query:", checkSlotQuery, [slot_id, speakerId]); // Debug log
+        const slotResult = await pool.query(checkSlotQuery, [slot_id, speakerId]);
+
+        console.log("Slot Result:", slotResult.rows); // Debug log
+
+        if (slotResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Slot not available or already booked.' });
+        }
+
+        const slot = slotResult.rows[0];
+        console.log("Slot to be booked:", slot); // Debug log
+
+        // Step 3: Update the slot in the `time_slots` table to mark it as booked
+        const updateSlotQuery = `
+            UPDATE time_slots 
+            SET is_booked = TRUE, user_id = $1 
+            WHERE id = $2 AND speaker_profile_id = $3
+            RETURNING *;
+        `;
+        const updatedSlot = await pool.query(updateSlotQuery, [userId, slot_id, speakerId]);
+
+        if (updatedSlot.rows.length === 0) {
+            return res.status(400).json({ message: 'Failed to update slot status.' });
+        }
+
+        // Step 4: Insert the booking into the `bookings` table
+        const insertBookingQuery = `
+            INSERT INTO bookings (user_id, slot_id, speaker_profile_id) 
+            VALUES ($1, $2, $3)
+            RETURNING *;
+        `;
+        const bookingResult = await pool.query(insertBookingQuery, [userId, slot_id, speakerId]);
+
+        res.status(200).json({
+            message: 'Slot booked successfully!',
+            slot: updatedSlot.rows[0],
+            booking: bookingResult.rows[0],
+        });
+    } catch (error) {
+        console.error('Error booking slot:', error);
+        res.status(500).json({ message: 'An error occurred while booking the slot.' });
+    }
 });
+
 
 module.exports = router;
