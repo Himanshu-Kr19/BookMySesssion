@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/db');
 const authenticateToken = require('../middleware/authenticateToken');
+
 // Get all speakers
 router.get('/get-speakers', authenticateToken, async (req, res) => {
     try {
@@ -41,119 +42,126 @@ router.get('/get-speakers', authenticateToken, async (req, res) => {
     }
 });
 
+
 // Endpoint to get available time slots for a speaker
 router.get('/:speakerId/slots', authenticateToken, async (req, res) => {
     const speakerId = req.params.speakerId;
 
     try {
-        // Query to fetch available time slots for a specific speaker (from 9 AM to 4 PM)
+        // Query to fetch all time slots and their booking status
         const query = `
-            SELECT id, slot_start, slot_end 
-            FROM time_slots 
-            WHERE speaker_profile_id = $1 
-              AND is_booked = FALSE
-            ORDER BY slot_start;
+            SELECT 
+                ts.id,
+                ts.slot_start,
+                ts.slot_end,
+                COUNT(b.id) as booking_count
+            FROM time_slots ts
+            LEFT JOIN bookings b ON ts.id = b.slot_id
+            WHERE ts.speaker_profile_id = $1
+            GROUP BY ts.id, ts.slot_start, ts.slot_end
+            ORDER BY ts.slot_start;
         `;
 
         const result = await pool.query(query, [speakerId]);
 
-        // If no available slots, respond with 204 (No Content) or 404 (Not Found) as you prefer
         if (result.rows.length === 0) {
-            return res.status(204).json({ message: 'No available slots for this speaker.' });
+            return res.status(204).json({ message: 'No slots found for this speaker.' });
         }
 
         // Function to convert UTC time to IST
         const convertToIST = (utcDateStr) => {
             const utcDate = new Date(utcDateStr);
-            // Add IST offset (UTC + 5:30) to the UTC time
-            const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+            const IST_OFFSET = 5.5 * 60 * 60 * 1000; // 5:30 hours in milliseconds
             const istDate = new Date(utcDate.getTime() + IST_OFFSET);
-            return istDate.toISOString().slice(0, 19).replace('T', ' '); // Format as 'YYYY-MM-DD HH:MM:SS'
+            return istDate.toISOString().slice(0, 19).replace('T', ' ');
         };
 
-        // Map the result to a cleaner format and convert times to IST
+        // Map the result including slot ID and booking count
         const availableSlots = result.rows.map(row => ({
+            id: row.id,
             slot_start: convertToIST(row.slot_start),
-            slot_end: convertToIST(row.slot_end)
+            slot_end: convertToIST(row.slot_end),
+            booking_count: parseInt(row.booking_count)
         }));
 
-        // Respond with the available slots
         res.status(200).json(availableSlots);
 
     } catch (error) {
         console.error('Error fetching time slots:', error);
-        res.status(500).json({ error: 'An error occurred while fetching available slots.' });
+        res.status(500).json({ error: 'An error occurred while fetching slots.' });
     }
 });
 
-//Booking Slot (only one user can book one slot each but multiple users can book the same slot)
+//Booking Slot for a speaker(one user can't book same slot but multiple users can book same slot)
 router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
-    const userId = req.user.id; // Assuming JWT contains the user ID
-    const speakerId = req.params.speakerId;
-    const { slot_id } = req.body; // ID of the slot to book (passed in the request body)
-
     try {
-        // Step 1: Check if the user has already booked this slot
-        const checkExistingBookingQuery = `
-            SELECT * 
-            FROM bookings 
-            WHERE user_id = $1 AND slot_id = $2
-        `;
-        const existingBooking = await pool.query(checkExistingBookingQuery, [userId, slot_id]);
 
-        if (existingBooking.rows.length > 0) {
-            return res.status(400).json({ message: 'You have already booked this slot.' });
+        if (!req.user || (!req.user.id && !req.user.userId)) {
+            console.error('Invalid user object:', req.user);
+            return res.status(401).json({ message: 'Invalid user authentication.' });
         }
 
-        // Step 2: Check if the slot is available
-        const checkSlotQuery = `
-            SELECT * 
-            FROM time_slots 
-            WHERE id = $1 AND speaker_profile_id = $2 AND is_booked = FALSE
-        `;
-        console.log("Check Slot Query:", checkSlotQuery, [slot_id, speakerId]); // Debug log
-        const slotResult = await pool.query(checkSlotQuery, [slot_id, speakerId]);
+        const userId = req.user.id || req.user.userId;
+        const speakerId = req.params.speakerId;
+        const { slot_id } = req.body;
 
-        console.log("Slot Result:", slotResult.rows); // Debug log
+        // Validate required parameters
+        if (!slot_id) {
+            return res.status(400).json({ message: 'Slot ID is required.' });
+        }
+
+        // Check if speaker exists
+        const speakerQuery = `
+            SELECT * FROM time_slots WHERE speaker_profile_id = $1
+        `;
+        const speakerResult = await pool.query(speakerQuery, [speakerId]);
+
+        if (speakerResult.rows.length === 0) {
+            return res.status(404).json({ message: 'Speaker not found or the speaker has not listed their profile yet.' });
+        }
+
+        // Check if slot exists and belongs to speaker
+        const slotQuery = `
+            SELECT * FROM time_slots 
+            WHERE id = $1 AND speaker_profile_id = $2
+        `;
+        const slotResult = await pool.query(slotQuery, [slot_id, speakerId]);
 
         if (slotResult.rows.length === 0) {
-            return res.status(404).json({ message: 'Slot not available or already booked.' });
+            return res.status(404).json({ message: 'Slot not found or does not belong to this speaker.' });
         }
 
-        const slot = slotResult.rows[0];
-        console.log("Slot to be booked:", slot); // Debug log
-
-        // Step 3: Update the slot in the `time_slots` table to mark it as booked
-        const updateSlotQuery = `
-            UPDATE time_slots 
-            SET is_booked = TRUE, user_id = $1 
-            WHERE id = $2 AND speaker_profile_id = $3
-            RETURNING *;
-        `;
-        const updatedSlot = await pool.query(updateSlotQuery, [userId, slot_id, speakerId]);
-
-        if (updatedSlot.rows.length === 0) {
-            return res.status(400).json({ message: 'Failed to update slot status.' });
-        }
-
-        // Step 4: Insert the booking into the `bookings` table
+        // Insert booking
         const insertBookingQuery = `
             INSERT INTO bookings (user_id, slot_id, speaker_profile_id) 
             VALUES ($1, $2, $3)
             RETURNING *;
         `;
+
+        console.log('Executing query with params:', { userId, slot_id, speakerId });
         const bookingResult = await pool.query(insertBookingQuery, [userId, slot_id, speakerId]);
 
         res.status(200).json({
             message: 'Slot booked successfully!',
-            slot: updatedSlot.rows[0],
-            booking: bookingResult.rows[0],
+            booking: bookingResult.rows[0]
         });
+
     } catch (error) {
-        console.error('Error booking slot:', error);
-        res.status(500).json({ message: 'An error occurred while booking the slot.' });
+        console.error('Booking error:', error);
+        if (error.code === '23505') {
+            return res.status(400).json({
+                message: 'You have already booked this slot. Multiple bookings are not allowed.'
+            });
+        }
+        if (error.code === '23503') { // Foreign key violation
+            return res.status(400).json({
+                message: 'Invalid slot or speaker ID provided.'
+            });
+        }
+        res.status(500).json({
+            message: 'Failed to book slot',
+            error: error.message
+        });
     }
 });
-
-
 module.exports = router;

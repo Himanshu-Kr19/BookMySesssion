@@ -25,24 +25,22 @@ const createDefaultTimeSlots = async (speakerProfileId) => {
             speaker_profile_id: speakerProfileId,
             slot_start: slotStart.toISOString().slice(0, 19).replace('T', ' '), // Format date as 'YYYY-MM-DD HH:MM:SS'
             slot_end: slotEnd.toISOString().slice(0, 19).replace('T', ' '), // Format date as 'YYYY-MM-DD HH:MM:SS'
-            is_booked: false,
         });
         slotStart = slotEnd; // Move to the next slot
     }
 
     // Insert all the time slots at once
     const insertQuery = `
-        INSERT INTO time_slots (speaker_profile_id, slot_start, slot_end, is_booked)
+        INSERT INTO time_slots (speaker_profile_id, slot_start, slot_end)
         VALUES
-        ${timeSlots.map((_, index) => `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`).join(', ')}
+        ${timeSlots.map((_, index) => `($${index * 3 + 1}, $${index * 3 + 2}, $${index * 3 + 3})`).join(', ')}
     `;
 
     // Extract values for all time slots
     const values = timeSlots.flatMap(slot => [
         slot.speaker_profile_id,
         slot.slot_start,
-        slot.slot_end,
-        slot.is_booked
+        slot.slot_end
     ]);
 
     try {
