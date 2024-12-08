@@ -124,11 +124,11 @@ This endpoint allows a user (either a general user or a speaker) to sign up by p
 ### Request Body:
 ```json
 {
-  "firstName": "string",
-  "lastName": "string",
-  "email": "string",
-  "password": "string",
-  "role": "string"  // 'user' or 'speaker'
+  "firstName": "James",
+  "lastName": "Alberto",
+  "email": "alberto@gmail.com",
+  "password": "strongpasswordhai@!@",
+  "role": "speaker"  // 'user' or 'speaker'
 }
 ```
 ### Response:
@@ -141,14 +141,12 @@ This endpoint allows a user (either a general user or a speaker) to sign up by p
 ```
 - **Status 400:** If the email is already registered.
 ```json
-Copy code
 {
   "error": "Email is already registered."
 }
 ```
 - **Status 500:** If there is an error during signup.
 ```json
-Copy code
 {
   "error": "Signup failed. Please try again later."
 }
@@ -160,7 +158,6 @@ This endpoint allows the user to verify their email by entering the OTP sent to 
 
 ### Request Body:
 ```json
-Copy code
 {
   "userId": "53",  // ID of the user who is verifying their email
   "otp": "902157"       // OTP sent to the user's email
@@ -169,28 +166,24 @@ Copy code
 ### Response:
 - **Status 200:** Success message after successful OTP verification.
 ```json
-Copy code
 {
   "message": "Account verified successfully."
 }
 ```
 - **Status 400:** If the OTP is invalid or expired.
 ```json
-Copy code
 {
   "error": "Invalid OTP." // or "OTP has expired."
 }
 ```
 - **Status 404:** If the user is not found.
 ```json
-Copy code
 {
   "error": "User not found."
 }
 ```
 - **Status 500:** If there is an error during OTP verification.
 ```json
-Copy code
 {
   "error": "OTP verification failed. Please try again later."
 }
@@ -202,7 +195,6 @@ This endpoint allows a user (either a general user or a speaker) to log in using
 
 ### Request Body:
 ```json
-Copy code
 {
   "email": "starqw475@gmail.com",
   "password": "justforcheckingpurpose@2121"
@@ -211,7 +203,6 @@ Copy code
 ### Response:
 - **Status 200:** Success message with the JWT token.
 ```json
-Copy code
 {
   "message": "Login successful.",
   "jwtToken": "eyJhbGciOsInR5cCI6J1c2VySWQiOjUyLCJlbWFpbCI6Z21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzM2NTUzODMsImV4cCI6MTczMzY1ODk4M30.mqkbxSajVJPgTaMD2_dHH1qFVg"  // JWT token
@@ -219,22 +210,20 @@ Copy code
 ```
 - **Status 400:** If the email or password is incorrect, or the account is not verified.
 ```json
-Copy code
 {
   "error": "Invalid email or password." // or "Account not verified. Please verify your account first."
 }
 ```
 - **Status 500:** If there is an error during login.
 ```json
-Copy code
 {
   "error": "Login failed. Please try again later."
 }
 ```
 ### Notes:
-The JWT token is used for authenticating subsequent requests to protected routes.
-The user must be verified before they can log in.
-The email OTP expires after 10 minutes, after which the user must request a new OTP.
+  - The JWT token is used for authenticating subsequent requests to protected routes.
+  - The user must be verified before they can log in.
+  - The email OTP expires after 10 minutes, after which the user must request a new OTP.
 ### Contact:
 For any queries or issues, reach out at:
 
@@ -247,8 +236,8 @@ This endpoint allows a speaker to set up or update their profile, including thei
 ### Request Body:
 ```json
 {
-  "expertise": "string",  // Speaker's area of expertise (e.g., Web Development, Machine Learning)
-  "pricePerSession": "number"  // Price per session in currency units
+  "expertise": "Designing and Communications",  // Speaker's area of expertise (e.g., Web Development, Machine Learning)
+  "pricePerSession": "5000"  // Price per session in currency units
 }
 ```
 ### Response:
@@ -258,23 +247,21 @@ Copy code
 {
   "message": "Profile created/updated and time slots added successfully.",
   "profile": {
-    "id": "integer",           // Speaker profile ID
-    "speaker_id": "integer",   // Speaker ID
-    "expertise": "string",     // Speaker's area of expertise
-    "price_per_session": "number" // Speaker's price per session
+    "id": "53",           // Speaker profile ID
+    "speaker_id": "56",   // Speaker ID
+    "expertise": "Designing and Communcations",     // Speaker's area of expertise
+    "price_per_session": "5000" // Speaker's price per session
   }
 }
 ```
 - **Status 400:** Missing required fields (expertise or pricePerSession).
 ```json
-Copy code
 {
   "error": "Expertise and price per session are required."
 }
 ```
 - **Status 500:** Internal server error during profile setup.
 ```json
-Copy code
 {
   "error": "Failed to set up profile."
 }
@@ -351,18 +338,17 @@ This endpoint returns the available time slots for a specific speaker. It also i
 ### Example Request: 
 `GET /1/slots`
 **Response:**
-  - `200 OK:` Returns an array of time slots available for the speaker with the booking count.
-    -`id`: Unique identifier for the time slot.
-    -`slot_start:` The start time of the slot, converted to IST.
-    -`slot_end:` The end time of the slot, converted to IST.
-    -`booking_count:` The number of bookings made for the slot.
-    -`204 No Content:` If no slots are available for the requested speaker.
-    -`message:` "No slots found for this speaker."
-    -`500 Internal Server Error:` If an error occurs while fetching the slots.
-    -`error:` "An error occurred while fetching slots."
+    - `200 OK:` Returns an array of time slots available for the speaker with the booking count.
+    - `id`: Unique identifier for the time slot.
+    - `slot_start:` The start time of the slot, converted to IST.
+    - `slot_end:` The end time of the slot, converted to IST.
+    - `booking_count:` The number of bookings made for the slot.
+    - `204 No Content:` If no slots are available for the requested speaker.
+    - `message:` "No slots found for this speaker."
+    - `500 Internal Server Error:` If an error occurs while fetching the slots.
+    - `error:` "An error occurred while fetching slots."
 **Example Response:**
 ```json
-Copy code
 [
   {
     "id": 1,
@@ -434,9 +420,7 @@ This response is sent if any of the following issues occur:
   - The slot does not exist or does not belong to the specified speaker.
   - The user or speaker email cannot be found.
 **Example:**
-```
-json
-Copy code
+```json
 {
   "message": "Slot ID is required."
 }
@@ -445,9 +429,7 @@ Copy code
 This response is sent if the user is not authenticated or the token is invalid.
 
 **Example:**
-```
-json
-Copy code
+```json
 {
   "message": "Invalid user authentication."
 }
@@ -457,9 +439,7 @@ This response is sent if either of the following occurs:
   - The speaker does not exist or has not listed their profile.
   - The slot does not exist or does not belong to the specified speaker.
 **Example:**
-```
-json
-Copy code
+```json
 {
   "message": "Slot not found or does not belong to this speaker."
 }
@@ -468,9 +448,7 @@ Copy code
 This response is sent if the user has already booked the slot.
 
 **Example:**
-```
-json
-Copy code
+```json
 {
   "message": "You have already booked this slot. Multiple bookings are not allowed."
 }
@@ -479,9 +457,7 @@ Copy code
 This response is sent if an invalid slot_id or speakerId is provided.
 
 **Example:**
-```
-json
-Copy code
+```json
 {
   "message": "Invalid slot or speaker ID provided."
 }
@@ -490,14 +466,13 @@ Copy code
 This response is sent in case of any unexpected errors during the booking process.
 
 **Example:**
-```
-json
-Copy code
+```json
 {
   "message": "Failed to book slot",
   "error": "Internal server error details"
 }
 ```
+
 **Workflow:**
   - ***Authentication:*** The user must provide a valid JWT token in the Authorization header to authenticate the request.
   - ***Slot Validation:*** The system checks if the specified speaker and slot exist. If not, an appropriate error response is sent.
@@ -516,9 +491,9 @@ Copy code
   - The user receives a confirmation email.
   - The speaker is notified via email about the new booking.
   - Calendar invites are sent to both the user and the speaker.
-  - 
+
 ## Notes:
-Ensure that the EMAIL, EMAIL_PASSWORD, and GOOGLE_REFRESH_TOKEN environment variables are set for sending email notifications.
-The sendCalendarInvite function should handle the calendar invite generation and sending to both user and speaker.
+  - Ensure that the EMAIL, EMAIL_PASSWORD, and GOOGLE_REFRESH_TOKEN environment variables are set for sending email notifications.
+  - The sendCalendarInvite function should handle the calendar invite generation and sending to both user and speaker.
 Email: ujjawalkantt@example.com
 GitHub: Ujjawal Kantt
