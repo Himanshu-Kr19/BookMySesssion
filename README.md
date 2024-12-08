@@ -136,7 +136,7 @@ This endpoint allows a user (either a general user or a speaker) to sign up by p
 ```json
 {
   "message": "OTP has been sent to your email. Please check your inbox, and if you do not see it, check your spam folder for the verification email.",
-  "userId": "integer"
+  "userId": "53"
 }
 ```
 - **Status 400:** If the email is already registered.
@@ -162,8 +162,8 @@ This endpoint allows the user to verify their email by entering the OTP sent to 
 ```json
 Copy code
 {
-  "userId": "integer",  // ID of the user who is verifying their email
-  "otp": "string"       // OTP sent to the user's email
+  "userId": "53",  // ID of the user who is verifying their email
+  "otp": "902157"       // OTP sent to the user's email
 }
 ```
 ### Response:
@@ -204,8 +204,8 @@ This endpoint allows a user (either a general user or a speaker) to log in using
 ```json
 Copy code
 {
-  "email": "string",
-  "password": "string"
+  "email": "starqw475@gmail.com",
+  "password": "justforcheckingpurpose@2121"
 }
 ```
 ### Response:
@@ -214,7 +214,7 @@ Copy code
 Copy code
 {
   "message": "Login successful.",
-  "jwtToken": "string"  // JWT token
+  "jwtToken": "eyJhbGciOsInR5cCI6J1c2VySWQiOjUyLCJlbWFpbCI6Z21haWwuY29tIiwicm9sZSI6InVzZXIiLCJpYXQiOjE3MzM2NTUzODMsImV4cCI6MTczMzY1ODk4M30.mqkbxSajVJPgTaMD2_dHH1qFVg"  // JWT token
 }
 ```
 - **Status 400:** If the email or password is incorrect, or the account is not verified.
