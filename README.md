@@ -114,8 +114,128 @@ Middleware for Role-Based Access:
   - Reminders for the event
   - A link to the session if applicable (e.g., a Zoom link or a physical location)
 
+# API Documentation
 
-Contact
+## 1. User Signup
+**Endpoint:** `POST /signup`  
+**Description:**  
+This endpoint allows a user (either a general user or a speaker) to sign up by providing their basic information (first name, last name, email, password, and role). An OTP (One-Time Password) is sent to the provided email for verification.
+
+### Request Body:
+```json
+{
+  "firstName": "string",
+  "lastName": "string",
+  "email": "string",
+  "password": "string",
+  "role": "string"  // 'user' or 'speaker'
+}
+```
+### Response:
+- **Status 200:** Success message and the user ID.
+```json
+{
+  "message": "OTP has been sent to your email. Please check your inbox, and if you do not see it, check your spam folder for the verification email.",
+  "userId": "integer"
+}
+```
+- **Status 400:** If the email is already registered.
+```json
+Copy code
+{
+  "error": "Email is already registered."
+}
+```
+- **Status 500:** If there is an error during signup.
+```json
+Copy code
+{
+  "error": "Signup failed. Please try again later."
+}
+```
+## 2. OTP Verification
+**Endpoint:** `POST /verify-otp`
+**Description:**
+This endpoint allows the user to verify their email by entering the OTP sent to them during the signup process.
+
+### Request Body:
+```json
+Copy code
+{
+  "userId": "integer",  // ID of the user who is verifying their email
+  "otp": "string"       // OTP sent to the user's email
+}
+```
+### Response:
+- **Status 200:** Success message after successful OTP verification.
+```json
+Copy code
+{
+  "message": "Account verified successfully."
+}
+```
+- **Status 400:** If the OTP is invalid or expired.
+```json
+Copy code
+{
+  "error": "Invalid OTP." // or "OTP has expired."
+}
+```
+- **Status 404:** If the user is not found.
+```json
+Copy code
+{
+  "error": "User not found."
+}
+```
+- **Status 500:** If there is an error during OTP verification.
+```json
+Copy code
+{
+  "error": "OTP verification failed. Please try again later."
+}
+```
+## 3. User Login
+**Endpoint:** `POST /login`
+**Description:**
+This endpoint allows a user (either a general user or a speaker) to log in using their email and password. A JWT (JSON Web Token) is returned upon successful authentication.
+
+### Request Body:
+```json
+Copy code
+{
+  "email": "string",
+  "password": "string"
+}
+```
+### Response:
+- **Status 200:** Success message with the JWT token.
+```json
+Copy code
+{
+  "message": "Login successful.",
+  "jwtToken": "string"  // JWT token
+}
+```
+- **Status 400:** If the email or password is incorrect, or the account is not verified.
+```json
+Copy code
+{
+  "error": "Invalid email or password." // or "Account not verified. Please verify your account first."
+}
+```
+- **Status 500:** If there is an error during login.
+```json
+Copy code
+{
+  "error": "Login failed. Please try again later."
+}
+```
+### Notes:
+The JWT token is used for authenticating subsequent requests to protected routes.
+The user must be verified before they can log in.
+The email OTP expires after 10 minutes, after which the user must request a new OTP.
+### Contact:
 For any queries or issues, reach out at:
 
 Email: ujjawalkantt@example.com
