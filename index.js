@@ -1,10 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const pool = require('./config/db'); // Import database configuration
-const dotenv = require('dotenv');
+require('dotenv').config();
 const authRoutes = require('./routes/auth');
 const app = express();
 const PORT = process.env.PORT || 5000;
+const { google } = require('googleapis');
 
 app.use(cors());
 app.use(express.json());
@@ -22,7 +23,39 @@ app.use((req, res, next) => {
     );
     next();
 });
-
+// Add OAuth routes
+const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    process.env.NODE_ENV === 'production'
+        ? 'https://book-my-sesssion.vercel.app/api/oauth2callback'
+        : 'http://localhost:5000/oauth2callback'
+);// Add OAuth routes
+app.get('/auth/google', (req, res) => {
+    const url = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: [
+            'https://www.googleapis.com/auth/calendar',
+            'https://www.googleapis.com/auth/calendar.events'
+        ],
+        prompt: 'consent'
+    });
+    res.redirect(url);
+});
+// Local development callback route
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/oauth2callback', async (req, res) => {
+        const { code } = req.query;
+        try {
+            const { tokens } = await oauth2Client.getToken(code);
+            console.log('Refresh Token:', tokens.refresh_token);
+            res.send('Success! Check console for refresh token');
+        } catch (error) {
+            console.error('Token Error:', error);
+            res.status(500).send(error.message);
+        }
+    });
+}
 // Test the database connection
 pool.query('SELECT NOW()', (err, res) => {
     if (err) {
