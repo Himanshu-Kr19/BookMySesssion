@@ -114,6 +114,7 @@ Middleware for Role-Based Access:
   - Reminders for the event
   - A link to the session if applicable (e.g., a Zoom link or a physical location)
 
+--- 
 # API Documentation
 ## A. Authentication and Authorization
 ## 1. User Signup
@@ -224,8 +225,6 @@ This endpoint allows a user (either a general user or a speaker) to log in using
   - The JWT token is used for authenticating subsequent requests to protected routes.
   - The user must be verified before they can log in.
   - The email OTP expires after 10 minutes, after which the user must request a new OTP.
-### Contact:
-For any queries or issues, reach out at:
 
 ## B. Speaker-Profile
 ## 1. Speaker Profile Setup
@@ -243,7 +242,7 @@ This endpoint allows a speaker to set up or update their profile, including thei
 ### Response:
 - **Status 200:** Profile created/updated successfully, along with time slots.
 ```json
-Copy code
+
 {
   "message": "Profile created/updated and time slots added successfully.",
   "profile": {
@@ -401,7 +400,7 @@ This response is sent when the slot is successfully booked. It contains details 
 
 **Example:**
 ```json
-Copy code
+
 {
   "message": "Slot booked successfully!",
   "booking": {
@@ -495,5 +494,7 @@ This response is sent in case of any unexpected errors during the booking proces
 ## Notes:
   - Ensure that the EMAIL, EMAIL_PASSWORD, and GOOGLE_REFRESH_TOKEN environment variables are set for sending email notifications.
   - The sendCalendarInvite function should handle the calendar invite generation and sending to both user and speaker.
+### Contact:
+For any queries or issues, reach out at:
 Email: ujjawalkantt@example.com
 GitHub: Ujjawal Kantt
