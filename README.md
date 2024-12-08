@@ -115,7 +115,7 @@ Middleware for Role-Based Access:
   - A link to the session if applicable (e.g., a Zoom link or a physical location)
 
 # API Documentation
-
+## A. Authentication and Authorization
 ## 1. User Signup
 **Endpoint:** `POST /signup`  
 **Description:**  
@@ -238,5 +238,50 @@ The email OTP expires after 10 minutes, after which the user must request a new 
 ### Contact:
 For any queries or issues, reach out at:
 
+## B. Speaker-Profile
+## 1. Speaker Profile Setup
+**Endpoint:** `POST /setup-profile`  
+**Description:**  
+This endpoint allows a speaker to set up or update their profile, including their expertise and price per session. It also creates default time slots for the speaker from 9 AM to 4 PM in IST.
+
+### Request Body:
+```json
+{
+  "expertise": "string",  // Speaker's area of expertise (e.g., Web Development, Machine Learning)
+  "pricePerSession": "number"  // Price per session in currency units
+}
+```
+### Response:
+- **Status 200:** Profile created/updated successfully, along with time slots.
+```json
+Copy code
+{
+  "message": "Profile created/updated and time slots added successfully.",
+  "profile": {
+    "id": "integer",           // Speaker profile ID
+    "speaker_id": "integer",   // Speaker ID
+    "expertise": "string",     // Speaker's area of expertise
+    "price_per_session": "number" // Speaker's price per session
+  }
+}
+```
+- **Status 400:** Missing required fields (expertise or pricePerSession).
+```json
+Copy code
+{
+  "error": "Expertise and price per session are required."
+}
+```
+- **Status 500:** Internal server error during profile setup.
+```json
+Copy code
+{
+  "error": "Failed to set up profile."
+}
+```
+Notes:
+The profile is either created or updated for the speaker.
+Default time slots from 9 AM to 4 PM (IST) are automatically added after the profile is set up.
+The speaker must have the speaker role to access this endpoint.
 Email: ujjawalkantt@example.com
 GitHub: Ujjawal Kantt
