@@ -14,6 +14,44 @@ BookMySession is a web application that allows users to manage and book speaker 
 
 ---
 
+# Table of Contents
+
+1. [Introduction](#introduction)
+2. [Technologies Used](#technologies-used)
+3. [Authentication and Authorization](#authentication-and-authorization)
+   - [User and Speaker Signup](#user-and-speaker-signup)
+   - [OTP Verification](#otp-verification)
+   - [Login Authentication](#login-authentication)
+   - [Authorization - Role-Based Access Control (RBAC)](#authorization---role-based-access-control-rbac)
+   - [Protected Routes](#protected-routes)
+4. [Session Booking Process](#session-booking-process)
+   - [Booking a Slot](#booking-a-slot)
+   - [One-Time Slot Booking Rule](#one-time-slot-booking-rule)
+   - [Multiple Users per Slot](#multiple-users-per-slot)
+   - [Slot Blocking for Double Booking](#slot-blocking-for-double-booking)
+5. [Email Notifications](#email-notifications)
+   - [Email Notification upon Booking](#email-notification-upon-booking)
+   - [Email Configuration](#email-configuration)
+   - [Customization](#customization)
+6. [Google Calendar Integration](#google-calendar-integration)
+   - [Google Calendar Invite upon Booking](#google-calendar-invite-upon-booking)
+   - [Google Calendar API](#google-calendar-api)
+   - [OAuth for Google Calendar Integration](#oauth-for-google-calendar-integration)
+   - [Calendar Invite Details](#calendar-invite-details)
+7. [API Documentation](#api-documentation)
+   - [Authentication and Authorization](#authentication-and-authorization-1)
+     - [User Signup](#1-user-signup)
+     - [OTP Verification](#2-otp-verification)
+     - [User Login](#3-user-login)
+   - [Speaker Profile](#speaker-profile)
+     - [Speaker Profile Setup](#1-speaker-profile-setup)
+   - [Session Booking](#session-booking)
+     - [Get All Speakers](#1-get-all-speakers)
+     - [Get Available Time Slots for a Speaker](#2-get-available-time-slots-for-a-speaker)
+     - [Slot Booking](#slot-booking)
+8. [Contact](#contact)
+
+---
 ## Authentication and Authorization
 
 ### a. User and Speaker Signup
@@ -507,5 +545,5 @@ This response is sent in case of any unexpected errors during the booking proces
   - The sendCalendarInvite function should handle the calendar invite generation and sending to both user and speaker.
 ### Contact:
 For any queries or issues, reach out at:
-Email: ujjawalkantt@example.com
-GitHub: Ujjawal Kantt
+  - Email: ujjawalkantt@example.com
+  - GitHub: Ujjawal Kantt
