@@ -279,9 +279,106 @@ Copy code
   "error": "Failed to set up profile."
 }
 ```
-Notes:
-The profile is either created or updated for the speaker.
-Default time slots from 9 AM to 4 PM (IST) are automatically added after the profile is set up.
-The speaker must have the speaker role to access this endpoint.
+### Notes:
+- The profile is either created or updated for the speaker.
+- Default time slots from 9 AM to 4 PM (IST) are automatically added after the profile is set up.
+- The speaker must have the speaker role to access this endpoint.
+
+## C. Session-Booking
+## 1. Get All Speakers
+
+**Endpoint** `GET /get-speakers`
+
+**Description:** 
+This endpoint returns a list of all speakers, optionally filtered by expertise and price range.
+
+### Query Parameters
+- `expertise` (optional): A string to filter speakers by their expertise.
+- `min_price` (optional): The minimum price per session to filter speakers.
+- `max_price` (optional): The maximum price per session to filter speakers.
+
+**Example Request:** ` GET /get-speakers?expertise=AI&min_price=100&max_price=500 `
+
+### Response
+- **200 OK**: Returns a list of speakers that match the filter criteria.
+  - `speakers`: An array of speaker objects with the following properties:
+    - `user_id`: Unique identifier for the user (speaker).
+    - `speaker_id`: Unique identifier for the speaker profile.
+    - `first_name`: First name of the speaker.
+    - `last_name`: Last name of the speaker.
+    - `email`: Email address of the speaker.
+    - `expertise`: The expertise of the speaker.
+    - `price_per_session`: The price the speaker charges per session.
+
+- **404 Not Found**: If no speakers are found that match the filter criteria.
+  - `message`: "No speakers found."
+
+- **500 Internal Server Error**: If an error occurs during the query execution.
+  - `message`: "Internal server error."
+
+### Example Response
+```json
+{
+  "speakers": [
+    {
+      "user_id": 1,
+      "speaker_id": 101,
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "expertise": "AI",
+      "price_per_session": 200
+    },
+    {
+      "user_id": 2,
+      "speaker_id": 102,
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "email": "jane.smith@example.com",
+      "expertise": "Machine Learning",
+      "price_per_session": 300
+    }
+  ]
+}
+```
+## 2. Get Available Time Slots for a Speaker
+**Endpoint:** `GET /:speakerId/slots`
+**Description:**
+This endpoint returns the available time slots for a specific speaker. It also includes the booking count for each slot.
+
+**URL Parameters:**
+  -`speakerId:` The unique identifier for the speaker whose slots are being requested.
+### Example Request: 
+`GET /1/slots`
+**Response:**
+  - `200 OK:` Returns an array of time slots available for the speaker with the booking count.
+    -`id`: Unique identifier for the time slot.
+    -`slot_start:` The start time of the slot, converted to IST.
+    -`slot_end:` The end time of the slot, converted to IST.
+    -`booking_count:` The number of bookings made for the slot.
+    -`204 No Content:` If no slots are available for the requested speaker.
+    -`message:` "No slots found for this speaker."
+    -`500 Internal Server Error:` If an error occurs while fetching the slots.
+    -`error:` "An error occurred while fetching slots."
+**Example Response:**
+```json
+Copy code
+[
+  {
+    "id": 1,
+    "slot_start": "2024-12-08 10:00:00",
+    "slot_end": "2024-12-08 11:00:00",
+    "booking_count": 2
+  },
+  {
+    "id": 2,
+    "slot_start": "2024-12-08 11:30:00",
+    "slot_end": "2024-12-08 12:30:00",
+    "booking_count": 0
+  }
+]
+```
+### Notes;
+Time Zone Conversion: The slot_start and slot_end times are provided in UTC and are converted to IST (Indian Standard Time) before being returned.
 Email: ujjawalkantt@example.com
 GitHub: Ujjawal Kantt
