@@ -6,9 +6,10 @@ BookMySession is a web application that allows users to manage and book speaker 
 ## **Technologies Used**
 
 - **Backend**: Node.js, Express.js
-- **Database**: MongoDB
-- **Authentication**: JWT, Bcrypt
-- **Frontend**: (Planned for future development)
+- **Database**: PostgreSQL, Supabase
+- **Authentication**: JWT, Bcrypt, Oauth2.0
+- **Mail**: Nodemailer, Gmail
+- **Calendar**: Google Calendar API
 - **Environment Management**: dotenv
 
 ---
