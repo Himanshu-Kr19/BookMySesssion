@@ -27,9 +27,7 @@ app.use((req, res, next) => {
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.NODE_ENV === 'production'
-        ? 'https://book-my-sesssion.vercel.app/api/oauth2callback'
-        : 'http://localhost:5000/oauth2callback'
+    'https://book-my-sesssion.vercel.app/api/oauth2callback'
 );// Add OAuth routes
 app.get('/auth/google', (req, res) => {
     const url = oauth2Client.generateAuthUrl({
