@@ -380,5 +380,145 @@ Copy code
 ```
 ### Notes;
 Time Zone Conversion: The slot_start and slot_end times are provided in UTC and are converted to IST (Indian Standard Time) before being returned.
+
+## D. Slot Booking
+# Slot Booking API Documentation
+
+**Endpoint:** `POST /:speakerId/book-slot`
+**Description:**
+This endpoint allows a user to book a slot with a speaker. It sends email notifications to both the user and the speaker upon a successful booking and also sends calendar invites to both parties.
+
+## Request Parameters
+
+### URL Parameters
+- `speakerId`: The ID of the speaker whose slot the user wants to book.
+
+### Request Body
+The request body should be a JSON object containing the following parameters:
+
+- `slot_id` (required): The ID of the time slot that the user wishes to book.
+
+Example:
+
+```json
+{
+  "slot_id": 123
+}
+```
+### Request Headers
+**Authorization:** A valid JWT token for user authentication.
+**Example:**
+- ***Authorization:*** Bearer <user_jwt_token>
+**Success Response:**
+- `Code:` 200 OK
+This response is sent when the slot is successfully booked. It contains details about the booking.
+
+**Example:**
+```json
+Copy code
+{
+  "message": "Slot booked successfully!",
+  "booking": {
+    "id": 1,
+    "user_id": 5,
+    "slot_id": 123,
+    "speaker_profile_id": 456,
+    "created_at": "2024-12-08T10:30:00Z"
+  }
+}
+```
+**Error Responses:**
+- `Code:` 400 Bad Request
+This response is sent if any of the following issues occur:
+  - Missing slot_id in the request body.
+  - The slot does not exist or does not belong to the specified speaker.
+  - The user or speaker email cannot be found.
+**Example:**
+```
+json
+Copy code
+{
+  "message": "Slot ID is required."
+}
+```
+**Code:** 401 Unauthorized
+This response is sent if the user is not authenticated or the token is invalid.
+
+**Example:**
+```
+json
+Copy code
+{
+  "message": "Invalid user authentication."
+}
+```
+**Code:** 404 Not Found
+This response is sent if either of the following occurs:
+  - The speaker does not exist or has not listed their profile.
+  - The slot does not exist or does not belong to the specified speaker.
+**Example:**
+```
+json
+Copy code
+{
+  "message": "Slot not found or does not belong to this speaker."
+}
+```
+**Code:** 400 Bad Request (Booking Conflict)
+This response is sent if the user has already booked the slot.
+
+**Example:**
+```
+json
+Copy code
+{
+  "message": "You have already booked this slot. Multiple bookings are not allowed."
+}
+```
+**Code:** 400 Bad Request (Foreign Key Violation)
+This response is sent if an invalid slot_id or speakerId is provided.
+
+**Example:**
+```
+json
+Copy code
+{
+  "message": "Invalid slot or speaker ID provided."
+}
+```
+**Code:** 500 Internal Server Error
+This response is sent in case of any unexpected errors during the booking process.
+
+**Example:**
+```
+json
+Copy code
+{
+  "message": "Failed to book slot",
+  "error": "Internal server error details"
+}
+```
+**Workflow:**
+  - ***Authentication:*** The user must provide a valid JWT token in the Authorization header to authenticate the request.
+  - ***Slot Validation:*** The system checks if the specified speaker and slot exist. If not, an appropriate error response is sent.
+  - ***Booking Insertion:*** If the validation passes, a new booking entry is created in the database.
+  - ***Email Notifications:*** After booking, email notifications are sent to both the user and the speaker.
+  - ***Calendar Invite:*** A calendar invite with the booking details (start and end times of the slot) is sent to both the user and the speaker.
+  - ***Email Notifications:*** Two emails are sent upon a successful booking:
+  - ***User Confirmation:*** Sent to the user confirming the slot booking.
+  - ***Speaker Notification:*** Sent to the speaker notifying them of the new booking.
+      Both emails contain the calendar invite with the booking details.
+
+**Example Flow**
+  - The user makes a POST request to /speaker123/book-slot with a slot_id of 456.
+  - The system validates the user's authentication and the slot.
+  - A new booking entry is created in the database.
+  - The user receives a confirmation email.
+  - The speaker is notified via email about the new booking.
+  - Calendar invites are sent to both the user and the speaker.
+  - 
+## Notes:
+Ensure that the EMAIL, EMAIL_PASSWORD, and GOOGLE_REFRESH_TOKEN environment variables are set for sending email notifications.
+The sendCalendarInvite function should handle the calendar invite generation and sending to both user and speaker.
 Email: ujjawalkantt@example.com
 GitHub: Ujjawal Kantt
