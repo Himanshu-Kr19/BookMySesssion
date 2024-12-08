@@ -86,7 +86,7 @@ Middleware for Role-Based Access:
 - The email notification is sent using an **SMTP service** (e.g., **Nodemailer** with an SMTP provider like Gmail, SendGrid, or Mailgun).
 - The backend sends the email after a successful booking event, including relevant session and user details.
 - Here is the screenshots of the confirmation email received by the speaker.
-[![Alt text](./images/my-image.jpg)](https://github.com/Ujjawal-Kantt/BookMySesssion/blob/main/images/Screenshot%202024-12-08%20185929.png)
+![Alt text](https://github.com/Ujjawal-Kantt/BookMySesssion/blob/main/images/Screenshot%202024-12-08%20185929.png)
 
 
 ### c. Customization
