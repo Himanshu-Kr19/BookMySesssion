@@ -28,6 +28,9 @@ Signup for Users and Speakers:
 ### b. OTP Verification
 - After submitting their signup details, users and speakers will receive an OTP to their provided email address.
 - The user must enter the OTP on the application to verify their email and complete the signup process. This step ensures that the email provided is valid and that the user is not a bot.
+- Here is the screenshot of the OTP received by the user:
+  ![Screenshot](https://github.com/Ujjawal-Kantt/BookMySesssion/blob/main/images/Screenshot%202024-12-08%20190016.png)
+
 
 ### c. Login Authentication
 - After account creation and OTP verification, both users and speakers can log in with their credentials (email and password).
@@ -117,6 +120,10 @@ Middleware for Role-Based Access:
   - Session time, date, and location (if any)
   - Reminders for the event
   - A link to the session if applicable (e.g., a Zoom link or a physical location)
+  - Here is the screenshot of Google Calendar Invite mail received by the speaker:
+    ![Screenshot](https://github.com/Ujjawal-Kantt/BookMySesssion/blob/main/images/Screenshot%202024-12-08%20185952.png)
+
+
 
 --- 
 # API Documentation
