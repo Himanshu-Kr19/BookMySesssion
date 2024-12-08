@@ -1,6 +1,6 @@
 // config/db.js
 const { Pool } = require('pg');
-require('dotenv').config(); // Load environment variables
+require('dotenv').config();
 
 const pool = new Pool({
     user: process.env.PG_USER,
@@ -8,7 +8,7 @@ const pool = new Pool({
     database: process.env.PG_DATABASE,
     password: process.env.PG_PASSWORD,
     port: process.env.PG_PORT,
-    ssl: { rejectUnauthorized: false } // Supabase requires SSL connections
+    ssl: { rejectUnauthorized: false }
 });
 
 pool.connect((err) => {

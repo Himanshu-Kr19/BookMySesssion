@@ -7,7 +7,7 @@
 .env
 # testing
 /coverage
-
+/routes/get-token.js
 # production
 /build
 

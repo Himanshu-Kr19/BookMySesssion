@@ -3,7 +3,13 @@ const router = express.Router();
 const pool = require('../config/db');
 const authenticateToken = require('../middleware/authenticateToken');
 const nodemailer = require('nodemailer');
+const { google } = require('googleapis');
+const { OAuth2 } = google.auth;
 
+const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET
+);
 // Get all speakers
 router.get('/get-speakers', authenticateToken, async (req, res) => {
     try {
@@ -99,6 +105,69 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASSWORD,
     },
 });
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+});
+
+
+async function sendCalendarInvite(bookingDetails, userEmail, speakerEmail) {
+    try {
+
+        if (!bookingDetails?.start_time || !userEmail || !speakerEmail) {
+            throw new Error(`Missing required booking details: 
+                start_time: ${!!bookingDetails?.start_time}, 
+                userEmail: ${!!userEmail}, 
+                speakerEmail: ${!!speakerEmail}`);
+        }
+        if (!bookingDetails?.start_time || !userEmail || !speakerEmail) {
+            throw new Error('Missing required booking details');
+        }
+        oauth2Client.setCredentials({
+            refresh_token: process.env.GOOGLE_REFRESH_TOKEN
+        });
+
+        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+
+        const startTime = new Date(bookingDetails.start_time);
+        if (isNaN(startTime.getTime())) {
+            throw new Error('Invalid start time');
+        }
+
+        const endTime = new Date(startTime.getTime() + 60 * 60 * 1000);
+
+        const event = {
+            summary: 'Mentoring Session',
+            description: `Virtual engaging session`,
+            start: {
+                dateTime: startTime.toISOString(),
+                timeZone: 'IST'
+            },
+            end: {
+                dateTime: endTime.toISOString(),
+                timeZone: 'IST'
+            },
+            attendees: [
+                { email: userEmail },
+                { email: speakerEmail }
+            ],
+            reminders: {
+                useDefault: true
+            }
+        };
+
+        const response = await calendar.events.insert({
+            calendarId: 'primary',
+            resource: event,
+            sendUpdates: 'all'
+        });
+        console.log('Calendar event created:', response.data.htmlLink);
+        return response.data.htmlLink;
+    } catch (error) {
+        console.error('Calendar invite error:', error);
+        throw error;
+    }
+}
 
 // Booking Slot Route (with email notifications)
 router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
@@ -246,7 +315,126 @@ router.post('/:speakerId/book-slot', authenticateToken, async (req, res) => {
     `,
         };
 
-        // Send emails
+        // Send calendar invite
+        try {
+            console.log('Sending calendar invite...');
+            const calendarLink = await sendCalendarInvite(
+                {
+                    start_time: slotResult.rows[0].slot_start, // Use slot start time
+                    end_time: slotResult.rows[0].slot_end,     // Use slot end time
+                    booking_id: bookingResult.rows[0].id
+                },
+                userResult.rows[0].email,
+                speaker_ans.rows[0].email
+            );
+            console.log('Calendar invite sent successfully');
+
+            // Email calendar content for the user
+            const userMailCalendar = {
+                from: process.env.EMAIL_USER,
+                to: userEmail,
+                subject: 'Calendar Invite Link - Confirmation',
+                html: `
+                <html>
+                    <body style="font-family: Arial, sans-serif; background-color: #f7f7f7; color: #333; padding: 20px; margin: 0;">
+                        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;">
+                            <!-- Header Section -->
+                            <header style="background-color: #2a9d8f; padding: 20px; text-align: center; color: #fff; border-radius: 10px 10px 0 0;">
+                                <h1 style="margin: 0; font-size: 24px;">BookMySession</h1>
+                                <p style="margin: 5px 0 0; font-size: 14px;">Your Gateway to Knowledge and Networking</p>
+                            </header>
+                            
+                            <!-- Body Section -->
+                            <div style="padding: 20px;">
+                                <h2 style="font-size: 20px; margin-top: 0;">Hello, ${userFirstName}!</h2>
+                                <p style="line-height: 1.6;">We’re excited to confirm your upcoming session with one of our expert speakers. Here are the details:</p>
+                                
+                                <!-- Event Details -->
+                                <div style="margin: 20px 0; padding: 15px; background-color: #f0f9f8; border-left: 5px solid #2a9d8f; border-radius: 5px;">
+                                    <p style="margin: 0;"><strong>Session Details:</strong></p>
+                                    <ul style="list-style: none; padding: 0; margin: 10px 0 0;">
+                                        <li><strong>Speaker:</strong> ${speakerFirstName}</li>
+                                        <li><strong>Start Time:</strong>${slotResult.rows[0].slot_start}</li>
+                                        <li><strong>End Time:</strong>${slotResult.rows[0].slot_end}</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Google Calendar Invite -->
+                                <p style="line-height: 1.6;">To ensure you don’t miss the session, a <strong>Google Calendar event</strong> has been created for you. Use the link below to add it to your calendar:</p>
+                                <div style="margin: 20px 0; text-align: center;">
+                                    <a href="${calendarLink}" style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #2a9d8f; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                        Add to Google Calendar
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer Section -->
+                            <footer style="background-color: #2a9d8f; padding: 15px; text-align: center; color: #fff; border-radius: 0 0 10px 10px; font-size: 14px;">
+                                <p style="margin: 0;">Thank you for choosing <strong>BookMySession</strong>. We’re confident you’ll have an insightful and engaging session!</p>\
+                            </footer>
+                        </div>
+                    </body>
+                </html>
+                `
+            };
+
+            // Email calendar content for the speaker
+            const speakerMailCalendar = {
+                from: process.env.EMAIL_USER,
+                to: speakerEmail,
+                subject: 'Calendar Invite Link - Confirmation',
+                html: `
+                <html>
+                    <body style="font-family: Arial, sans-serif; background-color: #f7f7f7; color: #333; padding: 20px; margin: 0;">
+                        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #ddd; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow: hidden;">
+                            <!-- Header Section -->
+                            <header style="background-color: #2a9d8f; padding: 20px; text-align: center; color: #fff; border-radius: 10px 10px 0 0;">
+                                <h1 style="margin: 0; font-size: 24px;">BookMySession</h1>
+                                <p style="margin: 5px 0 0; font-size: 14px;">Empowering Connections Through Knowledge Sharing</p>
+                            </header>
+                            
+                            <!-- Body Section -->
+                            <div style="padding: 20px;">
+                                <h2 style="font-size: 20px; margin-top: 0;">Hello, ${speakerFirstName}!</h2>
+                                <p style="line-height: 1.6;">We are thrilled to have you as a speaker for an upcoming session. Your insights and expertise will be invaluable to the attendees.</p>
+                                
+                                <!-- Event Details -->
+                                <div style="margin: 20px 0; padding: 15px; background-color: #f0f9f8; border-left: 5px solid #2a9d8f; border-radius: 5px;">
+                                    <p style="margin: 0;"><strong>Event Details:</strong></p>
+                                    <ul style="list-style: none; padding: 0; margin: 10px 0 0;">
+                                        <li><strong>Start Time:</strong>${slotResult.rows[0].slot_start}</li>
+                                        <li><strong>End Time:</strong>${slotResult.rows[0].slot_end}</li>
+                                    </ul>
+                                </div>
+                                
+                                <!-- Google Calendar Invite -->
+                                <p style="line-height: 1.6;">To ensure seamless scheduling, a <strong>Google Calendar event</strong> has been created for both you and the attendees. This will serve as a reminder for the scheduled session.</p>
+                                <div style="margin: 20px 0; text-align: center;">
+                                    <a href="${calendarLink}" style="display: inline-block; padding: 10px 20px; color: #fff; background-color: #2a9d8f; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                                        Add to Google Calendar
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Footer Section -->
+                            <footer style="background-color: #2a9d8f; padding: 15px; text-align: center; color: #fff; border-radius: 0 0 10px 10px; font-size: 14px;">
+                                <p style="margin: 0;">Thank you for choosing <strong>BookMySession</strong>. We look forward to an engaging session!</p>
+                            </footer>
+                        </div>
+                    </body>
+                </html>
+                `
+            };
+
+            // Send emails with calendar invites
+            await transporter.sendMail(userMailCalendar);
+            await transporter.sendMail(speakerMailCalendar);
+
+        } catch (error) {
+            console.error('Failed to send calendar invite:', error);
+        }
+
+        // Send emails with confirmation messages
         await transporter.sendMail(userMailOptions);
         await transporter.sendMail(speakerMailOptions);
 
