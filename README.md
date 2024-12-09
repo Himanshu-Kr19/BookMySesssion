@@ -273,7 +273,7 @@ This endpoint allows a user (either a general user or a speaker) to log in using
 ### Notes:
   - The JWT token is used for authenticating subsequent requests to protected routes.
   - The user must be verified before they can log in.
-  - The email OTP expires after 10 minutes, after which the user must request a new OTP.
+  - The email OTP expires after 10 minutes, after which the user must request a new JWT Token through login.
 
 ## B. Speaker-Profile
 ## 1. Speaker Profile Setup
