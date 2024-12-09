@@ -645,7 +645,8 @@ This response is sent in case of any unexpected errors during the booking proces
 ## Notes:
   - Ensure that the EMAIL, EMAIL_PASSWORD, and GOOGLE_REFRESH_TOKEN environment variables are set for sending email notifications.
   - The sendCalendarInvite function should handle the calendar invite generation and sending to both user and speaker.
+
 ### Contact:
 For any queries or issues, reach out at:
-  - Email: ujjawalkantt@example.com
+  - Email: ujjawalktt@gmail.com
   - GitHub: Ujjawal Kantt
