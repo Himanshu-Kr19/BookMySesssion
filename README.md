@@ -1,5 +1,7 @@
-BookMySession
+### BookMySession
 BookMySession is a web application that allows users to manage and book speaker sessions seamlessly. The application provides an intuitive platform for session management with features such as user authentication, profile setup, and slot booking.
+
+You can find the API documentation for **BookMySession** [here](https://www.postman.com/ujjawal06/976a370d-1db1-4971-aa87-454b82e87396/documentation/pd5der9/bookmysession).
 
 ---
 
