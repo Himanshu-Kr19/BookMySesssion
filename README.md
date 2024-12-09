@@ -1,7 +1,7 @@
 ### BookMySession
 BookMySession is a web application that allows users to manage and book speaker sessions seamlessly. The application provides an intuitive platform for session management with features such as user authentication, profile setup, and slot booking.
 
-This project is an assignment from Proactive to showcase skills in building backend applications using Node.js, Express, and JWT authentication.
+This project is an assignment from Proactively to showcase skills in building backend applications using Node.js, Express, and JWT authentication.
 
 The detailed API documentation for **BookMySession** is provided below. If you wish to run the APIs directly through Postman, you can [view and fork the collection here](https://www.postman.com/ujjawal06/976a370d-1db1-4971-aa87-454b82e87396/documentation/pd5der9/bookmysession). 
 
