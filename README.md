@@ -279,7 +279,7 @@ This endpoint allows a user (either a general user or a speaker) to log in using
 ## 1. Speaker Profile Setup
 **Endpoint:** `POST /setup-profile`  
 **Description:**  
-This endpoint allows a speaker to set up or update their profile, including their expertise and price per session. It also creates default time slots for the speaker from 9 AM to 4 PM in IST.
+This endpoint allows a speaker to set up or update their profile, including their expertise and price per session. It also creates default time slots for the speaker from 9 AM to 4 PM in IST.It also takes the JWT token through the header which is used to check the role of the user.
 
 ### Request Body:
 ```json
@@ -317,7 +317,7 @@ This endpoint allows a speaker to set up or update their profile, including thei
 ### Notes:
 - The profile is either created or updated for the speaker.
 - Default time slots from 9 AM to 4 PM (IST) are automatically added after the profile is set up.
-- The speaker must have the speaker role to access this endpoint.
+- The speaker must have the speaker role to access this endpoint which is being verified by the token sent through the header.
 
 ## C. Session-Booking
 ## 1. Get All Speakers
