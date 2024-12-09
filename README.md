@@ -20,6 +20,96 @@ To interact with the APIs:
 - **Environment Management**: dotenv
 
 ---
+## **Database Schema**
+
+The **BookMySession** application uses a relational database to manage users, speaker profiles, session bookings, and available time slots. Below is the schema for the database.
+
+### Users Table
+Stores information about the users (both speakers and general users).
+
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,           -- Unique user ID
+    first_name TEXT NOT NULL,        -- User's first name
+    last_name TEXT NOT NULL,         -- User's last name
+    password TEXT NOT NULL,          -- User's encrypted password
+    otp TEXT NOT NULL,               -- OTP sent for email verification
+    is_verified BOOLEAN DEFAULT FALSE, -- Whether the user's email is verified
+    email TEXT UNIQUE NOT NULL,      -- User's unique email
+    role TEXT CHECK (role IN ('user', 'speaker')) NOT NULL  -- Role of the user (user or speaker)
+);
+```
+#### Columns:
+   - id: Unique identifier for each user.
+   - first_name: User’s first name.
+   - last_name: User’s last name.
+   - password: Encrypted password for login.
+   - otp: One-time password used for email verification.
+   - is_verified: Flag indicating whether the user has verified their email.
+   - email: Unique email for the user.
+   - role: Defines whether the user is a general user (user) or a speaker (speaker).
+
+## Bookings Table
+Stores the booking details for sessions, associating users with time slots and speakers.
+```sql
+CREATE TABLE bookings (
+    id SERIAL PRIMARY KEY,            -- Unique booking ID
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,  -- User who booked the session
+    slot_id INT REFERENCES time_slots(id) ON DELETE CASCADE, -- Time slot being booked
+    speaker_profile_id INT REFERENCES speaker_profiles(id) ON DELETE CASCADE, -- Speaker's profile
+    booking_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- Time when the booking was made
+    CONSTRAINT unique_user_slot UNIQUE (user_id, slot_id) -- Ensure a user can book a slot only once
+);
+```
+#### Columns:
+   - id: Unique identifier for each booking.
+   - user_id: Foreign key referencing the users table, identifying the user who made the booking.
+   - slot_id: Foreign key referencing the time_slots table, indicating the booked time slot.
+   - speaker_profile_id: Foreign key referencing the speaker_profiles table, identifying the speaker associated with the session.
+   - booking_time: The timestamp of when the booking was made.
+
+## Speaker Profiles Table
+Stores speaker-specific information like their expertise and session price.
+
+```sql
+CREATE TABLE speaker_profiles (
+    id SERIAL PRIMARY KEY,                  -- Unique speaker profile ID
+    speaker_id INT REFERENCES users(id) ON DELETE CASCADE, -- Foreign key to users table
+    expertise TEXT NOT NULL,                 -- Speaker's area of expertise
+    price_per_session NUMERIC NOT NULL      -- Price for one session
+);
+```
+#### Columns:
+
+   - id: Unique identifier for the speaker profile.
+   - speaker_id: Foreign key referencing the users table, indicating the speaker's user ID.
+   - expertise: The area of expertise for the speaker (e.g., Web Development, AI, etc.).
+   - price_per_session: Price charged by the speaker per session.
+T
+## Time Slots Table
+Stores the available time slots for speakers to manage their availability.
+
+``` sql
+CREATE TABLE time_slots (
+    id SERIAL PRIMARY KEY,                    -- Unique time slot ID
+    speaker_profile_id INT REFERENCES speaker_profiles(id) ON DELETE CASCADE, -- Foreign key to speaker_profiles
+    user_id INT REFERENCES users(id) ON DELETE SET NULL,  -- Foreign key to users, NULL if not booked
+    slot_start TIMESTAMP NOT NULL,             -- Start time of the slot
+    slot_end TIMESTAMP NOT NULL,               -- End time of the slot
+    is_booked BOOLEAN DEFAULT FALSE,           -- Availability status of the slot
+    CONSTRAINT unique_slot_per_user UNIQUE (user_id, slot_start)  -- Ensure a user can only book one slot per time
+);
+```
+#### Columns:
+   - id: Unique identifier for each time slot.
+   - speaker_profile_id: Foreign key referencing the speaker_profiles table, identifying which speaker the time slot belongs to.
+   - user_id: Foreign key referencing the users table, indicating the user who booked the slot (NULL if not booked).
+   - slot_start: The start time of the available time slot.
+   - slot_end: The end time of the available time slot.
+   - is_booked: Indicates whether the slot is currently booked.
+   - unique_slot_per_user: Ensures that a user cannot book the same slot more than once.
+
+---
 
 # Table of Contents
 
