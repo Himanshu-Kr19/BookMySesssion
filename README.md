@@ -1,7 +1,12 @@
 ### BookMySession
 BookMySession is a web application that allows users to manage and book speaker sessions seamlessly. The application provides an intuitive platform for session management with features such as user authentication, profile setup, and slot booking.
 
-You can find the API documentation for **BookMySession** [here](https://www.postman.com/ujjawal06/976a370d-1db1-4971-aa87-454b82e87396/documentation/pd5der9/bookmysession).
+The detailed API documentation for **BookMySession** is provided below. If you wish to run the APIs directly through Postman, you can [view and fork the collection here](https://www.postman.com/ujjawal06/976a370d-1db1-4971-aa87-454b82e87396/documentation/pd5der9/bookmysession). 
+
+To interact with the APIs:
+1. Fork the collection to your own Postman workspace.
+2. Use the provided environment variables (if any) and authentication tokens to hit the endpoints directly from Postman.
+
 
 ---
 
