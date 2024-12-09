@@ -23,40 +23,41 @@ To interact with the APIs:
 
 # Table of Contents
 
-1. [Introduction](#introduction)
-2. [Technologies Used](#technologies-used)
-3. [Authentication and Authorization](#authentication-and-authorization)
-   - [User and Speaker Signup](#user-and-speaker-signup)
-   - [OTP Verification](#otp-verification)
-   - [Login Authentication](#login-authentication)
-   - [Authorization - Role-Based Access Control (RBAC)](#authorization---role-based-access-control-rbac)
-   - [Protected Routes](#protected-routes)
-4. [Session Booking Process](#session-booking-process)
-   - [Booking a Slot](#booking-a-slot)
-   - [One-Time Slot Booking Rule](#one-time-slot-booking-rule)
-   - [Multiple Users per Slot](#multiple-users-per-slot)
-   - [Slot Blocking for Double Booking](#slot-blocking-for-double-booking)
-5. [Email Notifications](#email-notifications)
-   - [Email Notification upon Booking](#email-notification-upon-booking)
-   - [Email Configuration](#email-configuration)
-   - [Customization](#customization)
-6. [Google Calendar Integration](#google-calendar-integration)
-   - [Google Calendar Invite upon Booking](#google-calendar-invite-upon-booking)
-   - [Google Calendar API](#google-calendar-api)
-   - [OAuth for Google Calendar Integration](#oauth-for-google-calendar-integration)
-   - [Calendar Invite Details](#calendar-invite-details)
-7. [API Documentation](#api-documentation)
-   - [Authentication and Authorization](#authentication-and-authorization-1)
-     - [User Signup](#1-user-signup)
-     - [OTP Verification](#2-otp-verification)
-     - [User Login](#3-user-login)
-   - [Speaker Profile](#speaker-profile)
-     - [Speaker Profile Setup](#1-speaker-profile-setup)
-   - [Session Booking](#session-booking)
-     - [Get All Speakers](#1-get-all-speakers)
-     - [Get Available Time Slots for a Speaker](#2-get-available-time-slots-for-a-speaker)
-     - [Slot Booking](#slot-booking)
-8. [Contact](#contact)
+1. Introduction
+2. Technologies Used
+3. Authentication and Authorization
+   - User and Speaker Signup
+   - OTP Verification
+   - Login Authentication
+   - Authorization - Role-Based Access Control (RBAC)
+   - Protected Routes
+4. Session Booking Process
+   - Booking a Slot
+   - One-Time Slot Booking Rule
+   - Multiple Users per Slot
+   - Slot Blocking for Double Booking
+5. Email Notifications
+   - Email Notification upon Booking
+   - Email Configuration
+   - Customization
+6. Google Calendar Integration
+   - Google Calendar Invite upon Booking
+   - Google Calendar API
+   - OAuth for Google Calendar Integration
+   - Calendar Invite Details
+7. API Documentation
+   - Authentication and Authorization
+     - User Signup
+     - OTP Verification
+     - User Login
+   - Speaker Profile
+     - Speaker Profile Setup
+   - Session Booking
+     - Get All Speakers
+     - Get Available Time Slots for a Speaker
+     - Slot Booking
+8. Contact
+
 
 ---
 ## Authentication and Authorization
