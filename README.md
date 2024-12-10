@@ -9,7 +9,7 @@ To interact with the APIs:
 1. Fork the collection to your own Postman workspace.
 2. Use the provided environment variables (if any) and authentication tokens to hit the endpoints directly from Postman.
 
-**Note:** The backend is deployed on Render, and it may take some time to respond on the first API call as it goes idle if not used for a while (since it's on the free tier).
+**Note:** The backend is deployed on **Render**, and it may take **some seconds to respond on the first API call** as it goes idle if not used for a while (since it's on the free tier).
 
 
 ---
