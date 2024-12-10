@@ -410,6 +410,12 @@ This endpoint allows a speaker to set up or update their profile, including thei
   "error": "Expertise and price per session are required."
 }
 ```
+- **Status 403:** Not authorized or Forbidden to setup the speaker profile(role is user or not speaker).
+```json
+{
+    "error": "Not authorized to setup the profile"
+}
+```
 - **Status 500:** Internal server error during profile setup.
 ```json
 {
