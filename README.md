@@ -14,7 +14,7 @@ To interact with the APIs:
 
 ---
 
-## **Technologies Used**
+## **Technologies Used**     
 
 - **Backend**: Node.js, Express.js
 - **Database**: PostgreSQL, Supabase
